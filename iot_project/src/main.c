@@ -122,6 +122,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
 		strcpy(connected_to, addr);
 
 		printk("connected to %s\n", addr);
+		button_is_pressed = false;
 
 		ledon();
 	}
@@ -166,7 +167,7 @@ void main(void)
 
 	while (1)
 	{
-		k_msleep(10);
+		k_msleep(100);
 		if (button_is_pressed)
 		{
 			printk("button pressed\n");
