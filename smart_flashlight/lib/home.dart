@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
@@ -9,30 +10,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  static const int minRssi = -80;
+
   FlutterBlue flutterBlue = FlutterBlue.instance;
   List<BluetoothDevice> connectedDevices = [];
-  List<BluetoothDevice> foundDevices = [];
+  List<ScanResult> receivedBeacons = [];
 
   @override
   void initState() {
     super.initState();
-  }
-
-  void scan() {
-    foundDevices = [];
-    flutterBlue.startScan(timeout: Duration(seconds: 5));
 
     flutterBlue.scanResults.listen((results) {
+      receivedBeacons = [];
       for (ScanResult r in results) {
-        if (!foundDevices.any((device) => device.id.id == r.device.id.id) &&
-            r.device.name == "Smart Flashlight") {
-          foundDevices.add(r.device);
-
+        if (r.device.name == "Smart Flashlight") {
+          receivedBeacons
+              .removeWhere((beacon) => beacon.device.id.id == r.device.id.id);
+          receivedBeacons.add(r);
           setState(() {});
         }
       }
     });
-    setState(() {});
+
+    flutterBlue.startScan(allowDuplicates: true);
+    Timer.periodic(Duration(seconds: 5), autoConnect);
   }
 
   void autoConnect(Timer timer) {
@@ -40,7 +41,12 @@ class _HomeScreenState extends State<HomeScreen> {
       flutterBlue.connectedDevices.then((connDevices) {
         for (BluetoothDevice device in connectedDevices) {
           if (!connDevices.any((element) => element.id.id == device.id.id)) {
-            device.connect();
+            List<ScanResult> received = receivedBeacons
+                .where((beacon) => beacon.device.id.id == device.id.id)
+                .toList();
+            if (received.isNotEmpty && received.first.rssi > minRssi) {
+              device.connect();
+            }
           }
         }
       });
@@ -49,8 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Timer.periodic(Duration(seconds: 5), autoConnect);
-
     return Scaffold(
         appBar: AppBar(
           leading: Container(
@@ -70,26 +74,17 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           actions: [
-            StreamBuilder<bool>(
-                stream: flutterBlue.isScanning,
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return Container();
-                  }
-                  return snapshot.data!
-                      ? Container()
-                      : Container(
-                          child: IconButton(
-                            onPressed: () {
-                              scan();
-                            },
-                            icon: Icon(
-                              Icons.refresh,
-                              color: Colors.white,
-                            ),
-                          ),
-                        );
-                })
+            // Container(
+            //   child: IconButton(
+            //     onPressed: () {
+            //       scan();
+            //     },
+            //     icon: Icon(
+            //       Icons.refresh,
+            //       color: Colors.white,
+            //     ),
+            //   ),
+            // )
           ],
         ),
         body: SafeArea(
@@ -99,20 +94,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Container(
                       margin:
                           EdgeInsets.symmetric(horizontal: 10, vertical: 20),
-                      child: foundDevices.isEmpty
+                      child: receivedBeacons.isEmpty
                           ? Center(
                               child: Text("no devices found"),
                             )
                           : ListView.builder(
                               shrinkWrap: true,
-                              itemCount: foundDevices.length,
+                              itemCount: receivedBeacons.length,
                               itemBuilder: (context, index) {
+                                BluetoothDevice device =
+                                    receivedBeacons[index].device;
                                 return ListTile(
-                                    title: Text(foundDevices[index].name),
-                                    subtitle: Text(foundDevices[index].id.id),
+                                    leading: Text(
+                                        receivedBeacons[index].rssi.toString()),
+                                    title: Text(device.name),
+                                    subtitle: Text(device.id.id),
                                     trailing: connectedDevices.any((device) =>
-                                            foundDevices[index].id.id ==
-                                            device.id.id)
+                                            device.id.id == device.id.id)
                                         ? TextButton(
                                             child: Container(
                                                 color: Colors.lightBlueAccent,
@@ -125,14 +123,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: Colors.white),
                                                 )),
                                             onPressed: () async {
-                                              await foundDevices[index]
-                                                  .disconnect();
+                                              await device.disconnect();
                                               connectedDevices.removeWhere(
                                                   (element) =>
                                                       element.id.id ==
-                                                      foundDevices[index]
-                                                          .id
-                                                          .id);
+                                                      device.id.id);
                                               setState(() {});
                                             })
                                         : TextButton(
@@ -147,10 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       color: Colors.white),
                                                 )),
                                             onPressed: () async {
-                                              await foundDevices[index]
-                                                  .connect();
-                                              connectedDevices
-                                                  .add(foundDevices[index]);
+                                              await device.connect();
+                                              connectedDevices.add(device);
                                               setState(() {});
                                             }));
                               })))
