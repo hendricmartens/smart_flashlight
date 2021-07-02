@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:smart_flashlight/settings.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -59,7 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           leading: Container(
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => SettingsScreen()));
+              },
               icon: Icon(
                 Icons.settings,
                 color: Colors.white,
