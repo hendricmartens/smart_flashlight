@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -16,6 +17,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool sunrise = true;
   Duration sunrise_delay = Duration();
 
+  bool initialized = false;
+
   SharedPreferences? prefs;
 
   @override
@@ -24,7 +27,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     SharedPreferences.getInstance().then((value) {
       prefs = value;
-
       if (prefs!.containsKey("sunset")) {
         sunset = prefs!.getBool("sunset")!;
         sunrise = prefs!.getBool("sunrise")!;
@@ -64,6 +66,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         setState(() {
                           sunset = !sunset;
                         });
+                        prefs?.setBool("sunset", sunset);
                       },
                       child: Container(
                         padding: EdgeInsets.all(3),
@@ -161,6 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         sunrise = !sunrise;
                       });
+                      prefs?.setBool("sunrise", sunrise);
                     },
                     child: Container(
                       padding: EdgeInsets.all(3),

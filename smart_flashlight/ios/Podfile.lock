@@ -15,11 +15,8 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_blue (from `.symlinks/plugins/flutter_blue/ios`)
-<<<<<<< HEAD
-  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
-=======
   - geolocator (from `.symlinks/plugins/geolocator/ios`)
->>>>>>> 17e938478c2d79a224c313dd78641c3b8665bfe0
+  - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
 
 SPEC REPOS:
   trunk:
@@ -30,13 +27,10 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_blue:
     :path: ".symlinks/plugins/flutter_blue/ios"
-<<<<<<< HEAD
-  shared_preferences:
-    :path: ".symlinks/plugins/shared_preferences/ios"
-=======
   geolocator:
     :path: ".symlinks/plugins/geolocator/ios"
->>>>>>> 17e938478c2d79a224c313dd78641c3b8665bfe0
+  shared_preferences:
+    :path: ".symlinks/plugins/shared_preferences/ios"
 
 SPEC CHECKSUMS:
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c

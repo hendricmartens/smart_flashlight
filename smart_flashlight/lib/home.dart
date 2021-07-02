@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:daylight/daylight.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:smart_flashlight/settings.dart';
 
@@ -19,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late FlutterBlue flutterBlue;
   List<BluetoothDevice> connectedDevices = [];
   List<ScanResult> receivedBeacons = [];
+
+  SharedPreferences? prefs;
 
   @override
   void initState() {
@@ -38,6 +41,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     flutterBlue.startScan(allowDuplicates: true);
     Timer.periodic(Duration(seconds: 5), autoConnect);
+
+    SharedPreferences.getInstance().then((value) {
+      prefs = value;
+
+      if (!prefs!.containsKey("sunset")) {
+        prefs!.setBool("sunset", true);
+        prefs!.setBool("sunrise", true);
+
+        prefs!.setInt("sunset_delay", 0);
+        prefs!.setInt("sunrise_delay", 0);
+      }
+    });
   }
 
   void autoConnect(Timer timer) async {
@@ -186,7 +201,12 @@ class _HomeScreenState extends State<HomeScreen> {
       final sunset = result.sunset;
 
       if (sunset != null && sunrise != null) {
-        return now.isBefore(sunrise) || now.isAfter(sunset);
+        return (now.isBefore(sunrise.subtract(
+                    Duration(minutes: prefs!.getInt("sunrise_delay")!))) ||
+                !prefs!.getBool("sunrise")!) ||
+            (now.isAfter(sunset
+                    .add(Duration(minutes: prefs!.getInt("sunset_delay")!))) ||
+                !prefs!.getBool("sunset")!);
       }
     }
     return false;

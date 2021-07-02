@@ -36,6 +36,7 @@ dependencies:
   geolocator: ^7.2.0+1
   daylight: ^2.0.0
   uuid: ^3.0.4
+  provider: ^5.0.0
 
 
   # The following adds the Cupertino Icons font to your application.
