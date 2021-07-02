@@ -84,8 +84,6 @@ void ledoff()
 static void buttonA_pressed(const struct device *dev, struct gpio_callback *cb, uint32_t pins)
 {
 	button_is_pressed = true;
-	k_msleep(SECOND * 20);
-	button_is_pressed = false;
 }
 
 void initButton()
@@ -105,9 +103,11 @@ static void connected(struct bt_conn *conn, uint8_t err)
 {
 	char addr[BT_ADDR_LE_STR_LEN];
 
+	printk("connection established, button is_pressed: %d\n", button_is_pressed);
+
 	bt_addr_le_to_str(bt_conn_get_dst(conn), addr, BT_ADDR_LE_STR_LEN);
 
-	if (button_is_pressed || addr == connected_to)
+	if (button_is_pressed || !strcmp(addr, connected_to))
 	{
 		int er = bt_le_adv_stop();
 		if (er)
@@ -133,6 +133,7 @@ static void connected(struct bt_conn *conn, uint8_t err)
 
 static void disconnected(struct bt_conn *conn, uint8_t reason)
 {
+	printk("disconnected\n");
 	ledoff();
 	bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 }
@@ -162,4 +163,16 @@ void main(void)
 	bt_conn_cb_register(&conn_callbacks);
 	//bt_conn_auth_cb_register(&auth_cb_display);
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
+
+	while (1)
+	{
+		k_msleep(10);
+		if (button_is_pressed)
+		{
+			printk("button pressed\n");
+			k_msleep(20 * SECOND);
+			button_is_pressed = false;
+			printk("times up \n");
+		}
+	}
 }
