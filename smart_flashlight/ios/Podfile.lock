@@ -6,6 +6,8 @@ PODS:
   - flutter_blue/Protos (0.0.1):
     - Flutter
     - Protobuf (~> 3.11.4)
+  - geolocator (6.2.0):
+    - Flutter
   - Protobuf (3.11.4)
   - shared_preferences (0.0.1):
     - Flutter
@@ -13,7 +15,11 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_blue (from `.symlinks/plugins/flutter_blue/ios`)
+<<<<<<< HEAD
   - shared_preferences (from `.symlinks/plugins/shared_preferences/ios`)
+=======
+  - geolocator (from `.symlinks/plugins/geolocator/ios`)
+>>>>>>> 17e938478c2d79a224c313dd78641c3b8665bfe0
 
 SPEC REPOS:
   trunk:
@@ -24,12 +30,18 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_blue:
     :path: ".symlinks/plugins/flutter_blue/ios"
+<<<<<<< HEAD
   shared_preferences:
     :path: ".symlinks/plugins/shared_preferences/ios"
+=======
+  geolocator:
+    :path: ".symlinks/plugins/geolocator/ios"
+>>>>>>> 17e938478c2d79a224c313dd78641c3b8665bfe0
 
 SPEC CHECKSUMS:
   Flutter: 434fef37c0980e73bb6479ef766c45957d4b510c
   flutter_blue: eeb381dc4727a0954dede73515f683865494b370
+  geolocator: f5e3de65e241caba7ce3e8a618803387bda73384
   Protobuf: 176220c526ad8bd09ab1fb40a978eac3fef665f7
   shared_preferences: af6bfa751691cdc24be3045c43ec037377ada40d
 
