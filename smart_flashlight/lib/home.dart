@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 
+import 'package:daylight/daylight.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,20 +13,19 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   static const int minRssi = -80;
 
-  FlutterBlue flutterBlue = FlutterBlue.instance;
+  late FlutterBlue flutterBlue;
   List<BluetoothDevice> connectedDevices = [];
   List<ScanResult> receivedBeacons = [];
 
   @override
   void initState() {
     super.initState();
-
-    flutterBlue.scanResults.listen((results) {
+    flutterBlue = FlutterBlue.instance;
+    flutterBlue.scanResults.listen((results) async {
       receivedBeacons = [];
       for (ScanResult r in results) {
         if (r.device.name == "Smart Flashlight") {
-          receivedBeacons
-              .removeWhere((beacon) => beacon.device.id.id == r.device.id.id);
+          receivedBeacons.removeWhere((beacon) => beacon.device.id.id == r.device.id.id);
           receivedBeacons.add(r);
           setState(() {});
         }
@@ -36,14 +36,13 @@ class _HomeScreenState extends State<HomeScreen> {
     Timer.periodic(Duration(seconds: 5), autoConnect);
   }
 
-  void autoConnect(Timer timer) {
-    if (connectedDevices.isNotEmpty) {
+  void autoConnect(Timer timer) async {
+    if (connectedDevices.isNotEmpty && await canConnect) {
       flutterBlue.connectedDevices.then((connDevices) {
         for (BluetoothDevice device in connectedDevices) {
           if (!connDevices.any((element) => element.id.id == device.id.id)) {
-            List<ScanResult> received = receivedBeacons
-                .where((beacon) => beacon.device.id.id == device.id.id)
-                .toList();
+            List<ScanResult> received =
+                receivedBeacons.where((beacon) => beacon.device.id.id == device.id.id).toList();
             if (received.isNotEmpty && received.first.rssi > minRssi) {
               device.connect();
             }
@@ -92,8 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               Expanded(
                   child: Container(
-                      margin:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
                       child: receivedBeacons.isEmpty
                           ? Center(
                               child: Text("no devices found"),
@@ -102,53 +100,82 @@ class _HomeScreenState extends State<HomeScreen> {
                               shrinkWrap: true,
                               itemCount: receivedBeacons.length,
                               itemBuilder: (context, index) {
-                                BluetoothDevice device =
-                                    receivedBeacons[index].device;
+                                BluetoothDevice device = receivedBeacons[index].device;
                                 return ListTile(
-                                    leading: Text(
-                                        receivedBeacons[index].rssi.toString()),
+                                    leading: Text(receivedBeacons[index].rssi.toString()),
                                     title: Text(device.name),
                                     subtitle: Text(device.id.id),
-                                    trailing: connectedDevices.any((device) =>
-                                            device.id.id == device.id.id)
+                                    trailing: connectedDevices
+                                            .any((device) => device.id.id == device.id.id)
                                         ? TextButton(
                                             child: Container(
                                                 color: Colors.lightBlueAccent,
                                                 padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 10),
+                                                    horizontal: 10, vertical: 10),
                                                 child: Text(
                                                   "Disconnect",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                                  style: TextStyle(color: Colors.white),
                                                 )),
                                             onPressed: () async {
                                               await device.disconnect();
                                               connectedDevices.removeWhere(
-                                                  (element) =>
-                                                      element.id.id ==
-                                                      device.id.id);
+                                                  (element) => element.id.id == device.id.id);
+
                                               setState(() {});
                                             })
                                         : TextButton(
                                             child: Container(
                                                 color: Colors.amberAccent,
                                                 padding: EdgeInsets.symmetric(
-                                                    horizontal: 10,
-                                                    vertical: 10),
+                                                    horizontal: 10, vertical: 10),
                                                 child: Text(
                                                   "Connect",
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                                  style: TextStyle(color: Colors.white),
                                                 )),
                                             onPressed: () async {
-                                              await device.connect();
-                                              connectedDevices.add(device);
-                                              setState(() {});
+                                              if (await canConnect) {
+                                                await device.connect();
+                                                connectedDevices.add(device);
+
+                                                setState(() {});
+                                              }
                                             }));
                               })))
             ],
           ),
         ));
+  }
+
+  Future<bool> get canConnect async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (!permissionGranted(permission)) {
+      permission = await Geolocator.requestPermission();
+    }
+    if (permissionGranted(permission)) {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      print(serviceEnabled);
+      if (!serviceEnabled) {
+        return false;
+      }
+      final location = await Geolocator.getCurrentPosition();
+      final daylightLocation = DaylightLocation(location.latitude, location.longitude);
+      final daylightCalculator = DaylightCalculator(daylightLocation);
+
+      final now = DateTime.now();
+
+      final result = daylightCalculator.calculateForDay(now);
+      final sunrise = result.sunrise;
+      final sunset = result.sunset;
+
+      if (sunset != null && sunrise != null) {
+        return now.isBefore(sunrise) || now.isAfter(sunset);
+      }
+    }
+    return false;
+  }
+
+  bool permissionGranted(LocationPermission permission) {
+    print(permission);
+    return permission == LocationPermission.always || permission == LocationPermission.whileInUse;
   }
 }
