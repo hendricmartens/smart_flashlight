@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  static const int minRssi = -80;
+  static const int minRssi = -85;
 
   late FlutterBlue flutterBlue;
   List<BluetoothDevice> connectedDevices = [];
@@ -95,19 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
-          actions: [
-            // Container(
-            //   child: IconButton(
-            //     onPressed: () {
-            //       scan();
-            //     },
-            //     icon: Icon(
-            //       Icons.refresh,
-            //       color: Colors.white,
-            //     ),
-            //   ),
-            // )
-          ],
         ),
         body: SafeArea(
           child: Column(
@@ -166,7 +153,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 )),
                                             onPressed: () async {
                                               if (await canConnect) {
+                                                DateTime dt = DateTime.now();
                                                 await device.connect();
+                                                Duration diff = dt
+                                                    .difference(DateTime.now());
+
+                                                print(diff.toString());
                                                 connectedDevices.add(device);
 
                                                 setState(() {});

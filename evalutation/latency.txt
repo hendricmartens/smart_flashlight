@@ -1,0 +1,4 @@
+how long till a connection is established:
+
+5m: 0.529s , 0.478s, 0.438s, 0.481s, 0.481s, 0.499s, 0.447s, 0.463s, 0.528s
+

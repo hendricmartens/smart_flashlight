@@ -34,8 +34,7 @@
 #define FLAGS1 DT_GPIO_FLAGS(LED1_NODE, gpios)
 
 #define SECOND 1000
-#define ADVERTISING_PERIOD 20 // in seconds
-#define TIMES_TILL_OFF 100
+#define PAIRING_TIME 20 //in seconds
 
 static const struct gpio_dt_spec buttonA = GPIO_DT_SPEC_GET_OR(SW0_NODE, gpios, {0});
 static struct gpio_callback button_cb_dataA;
@@ -46,20 +45,11 @@ const struct device *led_1;
 static bool button_is_pressed = false;
 static char connected_to[BT_ADDR_LE_STR_LEN];
 
-//static struct bt_conn *conn;
-
 static uint8_t mfg_data[] = {0xff, 0xff, 0x00};
 
 static const struct bt_data ad[] = {
 	BT_DATA(BT_DATA_MANUFACTURER_DATA, mfg_data, 3),
 };
-
-// static struct bt_le_scan_param scan_param = {
-// 	.type = BT_HCI_LE_SCAN_PASSIVE,
-// 	.options = BT_LE_SCAN_OPT_NONE,
-// 	.interval = 0x0010,
-// 	.window = 0x0010,
-// };
 
 void initLED()
 {
@@ -90,10 +80,6 @@ static void buttonA_pressed(const struct device *dev, struct gpio_callback *cb, 
 
 void initButton()
 {
-	// if (!device_is_ready(button.port)) {
-	// 	printk("Error: button device %s is not ready\n", button.port->name);
-	// 	return;
-	// }
 
 	gpio_pin_configure_dt(&buttonA, GPIO_INPUT);
 	gpio_pin_interrupt_configure_dt(&buttonA, GPIO_INT_EDGE_TO_ACTIVE);
@@ -112,14 +98,6 @@ static void connected(struct bt_conn *conn, uint8_t err)
 	if (button_is_pressed || !strcmp(addr, connected_to))
 	{
 		int er = bt_le_adv_stop();
-		if (er)
-		{
-			printk("Advertising failed to stop (err %d)\n", err);
-		}
-		else
-		{
-			printk("advertising stopped ... \n");
-		}
 
 		strcpy(connected_to, addr);
 
@@ -166,7 +144,7 @@ void main(void)
 	printk("Bluetooth initialized\n");
 
 	bt_conn_cb_register(&conn_callbacks);
-	//bt_conn_auth_cb_register(&auth_cb_display);
+
 	err = bt_le_adv_start(BT_LE_ADV_CONN_NAME, ad, ARRAY_SIZE(ad), NULL, 0);
 
 	while (1)
@@ -176,7 +154,7 @@ void main(void)
 		{
 			printk("button pressed\n");
 			ledon(led_1, PIN1);
-			k_msleep(20 * SECOND);
+			k_msleep(PAIRING_TIME * SECOND);
 			ledoff(led_1, PIN1);
 			button_is_pressed = false;
 			printk("times up \n");

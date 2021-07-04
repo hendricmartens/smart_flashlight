@@ -1,0 +1,18 @@
+how reliable is the connection:
+
+position fixed: we couldnt detect any losses 100%
+
+riding a bike: same as position fixed 100%
+
+doesnt matter if app is running in the forground or background
+
+
+
+how reliable is the reconnection:
+
+app is running in the forground: 100%
+
+app is running in the background/on pause: 50%
+
+
+

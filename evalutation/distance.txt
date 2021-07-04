@@ -1,0 +1,20 @@
+distance after connection was lost:
+
+outside (without obstacles): 18-22m
+
+smartphone in front pocket: 14-16m
+
+smartphone in back pocket: 5-7m
+
+smartphone in backpack/handbag: 8-12m
+
+
+connection is established (reconnected)(rssi: -85):
+
+outside(without obstacles): 10-14m
+
+smartphone in front pocket: 6-8m
+
+smartphone in back pocket: 4-5m
+
+smartphone in backpack/handbag:1-2m

@@ -1,0 +1,5 @@
+rssi/distance:
+
+0m:-20 ;1m: -60 ; 2m: -65 ; 3m: -70 ; 4m: -72; 5m: -75 ; 6m: -80; 7m: -82 ; 8m: -84 ; 9m: -86 ; 10m: -92 
+
+not exact, high variance
